@@ -8,7 +8,8 @@ class AuthUtils {
 	static final String authTokenKey = 'auth_token';
 	static final String userIdKey = 'user_id';
 	static final String nameKey = 'name';
-	static final String roleKey = 'role';
+	static final String emailKey = 'email';
+	static final String phoneKey = 'phone';
   static final String accessToken = 'access-token';
   static final String client = 'client';
   static final String expiry = 'expiry';
@@ -51,6 +52,8 @@ class AuthUtils {
     var user = response['data'];
 		prefs.setInt(userIdKey, user['id']);
 		prefs.setString(nameKey, user['f_name']);
+		prefs.setString(emailKey, user['email']);
+		prefs.setString(phoneKey, user['phone']);
 	}
 	
 }

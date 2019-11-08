@@ -96,8 +96,8 @@ class LoginPageState extends State<LoginPage> {
 		} else {
 			setState(() {
 				_isLoading = false;
-				_emailError;
-				_passwordError;
+				// _emailError;
+				// _passwordError;
 			});
 		}
 	}

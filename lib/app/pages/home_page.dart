@@ -3,6 +3,11 @@ import 'package:flutter_auth_flow/app/utils/auth_utils.dart';
 import 'package:flutter_auth_flow/app/utils/network_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_auth_flow/app/pages/scan_page.dart';
+import 'package:flutter_auth_flow/app/pages/catalog_page.dart';
+import 'package:flutter_auth_flow/app/components/header.dart';
+import 'package:flutter_auth_flow/app/components/row_widget.dart';
+import 'package:flutter_auth_flow/app/components/top_button_bar.dart';
 
 class HomePage extends StatefulWidget {
 	static final String routeName = 'home';
@@ -19,7 +24,7 @@ class _HomePageState extends State<HomePage> {
 	Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
 	SharedPreferences _sharedPreferences;
-	var _accessToken, _id, _name, _homeResponse;
+	var _accessToken, _name;
 
 	@override
 	void initState() {
@@ -33,7 +38,6 @@ class _HomePageState extends State<HomePage> {
 		String client = AuthUtils.getClient(_sharedPreferences);
 		String uid = AuthUtils.getUid(_sharedPreferences);
 		String expiry = AuthUtils.getExpiry(_sharedPreferences);
-		var id = _sharedPreferences.getInt(AuthUtils.userIdKey);
 		var name = _sharedPreferences.getString(AuthUtils.nameKey);
 
 		print(accessToken);
@@ -42,7 +46,6 @@ class _HomePageState extends State<HomePage> {
 
 		setState(() {
 			_accessToken = accessToken;
-			_id = id;
 			_name = name;
 		});
 
@@ -68,14 +71,22 @@ class _HomePageState extends State<HomePage> {
 
 		}
 
-		setState(() {
-		  _homeResponse = responseJson.toString();
-		});
+		// setState(() {
+		//   _homeResponse = responseJson.toString();
+		// });
 	}
 
 	_logout() {
 		NetworkUtils.logoutUser(_scaffoldKey.currentContext, _sharedPreferences);
 	}
+
+  _navigateToScan() {
+    Navigator.push(_scaffoldKey.currentContext, new MaterialPageRoute(builder: (context) =>new ScanPage(null)));
+  }
+
+  _navigateToCatalog() {
+    Navigator.push(_scaffoldKey.currentContext, new MaterialPageRoute(builder: (context) =>new CatalogPage()));
+  }
 
 	@override
 	Widget build(BuildContext context) {
@@ -84,35 +95,48 @@ class _HomePageState extends State<HomePage> {
 			appBar: new AppBar(
 				title: new Text('Home'),
 			),
-			body: new Container(
-				margin: const EdgeInsets.symmetric(horizontal: 16.0),
-				child: new Column(
-					crossAxisAlignment: CrossAxisAlignment.stretch,
-					children: <Widget>[
-						new Container(
-							padding: const EdgeInsets.all(8.0),
-							child: new Text(
-								"USER_ID: $_id \nUSER_NAME: $_name \nHOME_RESPONSE: $_homeResponse",
-								style: new TextStyle(
-									fontSize: 24.0,
-									color: Colors.grey.shade700
-								),
-							),
-						),
-						new MaterialButton(
-							color: Theme.of(context).primaryColor,
-							child: new Text(
-								'Logout',
-								style: new TextStyle(
-									color: Colors.white
-								),
-							),
-							onPressed: _logout
-						),
-					]
-				),
-			)
-		);
+      body: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  ConstrainedBox(
+                    constraints: BoxConstraints.expand(height: 400.0),
+                    child: HeaderWidget(name: this._name),
+                  ),
+                  RowWidget(
+                    title1: "Orders",
+                    subTitle1: "Old",
+                    title2: "Scan",
+                    subTitle2: "New Order",
+                    onPressed1: _navigateToCatalog,
+                    onPressed2: _navigateToScan,
+                    height: 100.0,
+                  ),
+                  // StatsWidget(stats: vm.stats, height: _kStatGridsHeight),
+                  // TopRowWidget(stats: vm.stats, height: _kRowGridsHeight),
+                  // MidRowWidget(stats: vm.stats, height: _kRowGridsHeight),
+                  // BottomRowWidget(
+                  //   stats: vm.stats,
+                  //   account: vm.account,
+                  //   height: _kRowGridsHeight,
+                  // ),
+                  // SizedBox(height: _kBottomBarHeight),
+                ],
+              ),
+            ),
+          ),
+          TopButtonBar(
+            onLogout: _logout,
+          ),
+        ],
+      ),
+    );
 	}
-
 }
+

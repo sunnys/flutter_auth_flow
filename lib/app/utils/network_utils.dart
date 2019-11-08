@@ -7,7 +7,7 @@ import 'auth_utils.dart';
 class NetworkUtils {
 	static final String host = developmentHost;
 	static final String productionHost = '';
-	static final String developmentHost = 'http://192.168.0.106:3000';
+	static final String developmentHost = 'http://192.168.43.141:3000';
 
 	static dynamic authenticateUser(String email, String password) async {
 		var uri = host + AuthUtils.endPoint;
@@ -69,6 +69,36 @@ class NetworkUtils {
           'Content-Type': 'application/json',
           'token-type': 'bearer'
 				},
+			);
+
+			final responseJson = json.decode(response.body);
+			return responseJson;
+
+		} catch (exception) {
+			print(exception);
+			if(exception.toString().contains('SocketException')) {
+				return 'NetworkError';
+			} else {
+				return null;
+			}
+		}
+	}
+
+  static post(var accessToken, var client, var uid, var expiry, var endPoint, var body) async {
+		var uri = host + endPoint;
+		try {
+			final response = await http.post(
+				uri,
+				headers: {
+          'access-token': accessToken,
+          'client': client,
+          'uid': uid,
+          'expiry': expiry,
+          'expires': 'Fri, 01 Jan 1970 00:00:00 GMT',
+          'Content-Type': 'application/json',
+          'token-type': 'bearer'
+				},
+        body: json.encode(body)
 			);
 
 			final responseJson = json.decode(response.body);
