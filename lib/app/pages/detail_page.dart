@@ -5,6 +5,8 @@ import 'package:flutter_auth_flow/app/utils/network_utils.dart';
 import 'package:flutter_auth_flow/app/components/body_section.dart';
 import 'package:flutter_auth_flow/app/models/item.dart';
 import 'package:flutter_auth_flow/app/models/member.dart';
+import 'package:flutter_auth_flow/app/models/order.dart';
+import 'package:flutter_auth_flow/app/models/booked_order.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_auth_flow/app/pages/order_detail_page.dart';
 
@@ -31,6 +33,13 @@ class _DetailPageState extends State<DetailPage> {
 
 	SharedPreferences _sharedPreferences;
   var _accessToken, _client, _uid, _expiry, _name, _email, _phone, itemId, memberId;
+  List<String> _locations = ['A', 'B', 'C', 'D']; // Option 2
+  String _selectedLocation; // Option 2
+  /// All members in the catalog.
+  List<BookedOrder> bookedOrders;
+
+  /// bookedOrders currently being displayed in the list.
+  List<BookedOrder> displayedBookedOrders;
   /// Kicks off API fetch on creation.
   
   _DetailPageState() {
@@ -42,10 +51,11 @@ class _DetailPageState extends State<DetailPage> {
     if(memberId != null) {
       print('calling get member');  
       _getMember();
-    }  else{
-      print("Calling create member");
-      _createMember();
-    } 
+    }  
+    // else{
+    //   print("Calling create member");
+    //   _createMember();
+    // } 
   }
 
   _getMember() async {
@@ -54,6 +64,7 @@ class _DetailPageState extends State<DetailPage> {
     Member newMember = Member.fromJson(newMemberRaw);
     setState(() {
       member = newMember;
+      _selectedLocation = newMember.name;
     });
   }
 
@@ -83,7 +94,7 @@ class _DetailPageState extends State<DetailPage> {
 
 		_fetchItem(accessToken, client, uid, expiry, widget.itemId);
     _fetchMember(widget.memberId);
-
+    _fetchBookedOrderList();
 		setState(() {
 			_accessToken = accessToken;
       _client = client;
@@ -115,13 +126,26 @@ class _DetailPageState extends State<DetailPage> {
     Item newItem = Item.fromJson(newItemRaw);
     setState(() {
       item = newItem;
+      nameController.text = "1";
     });
+  }
+
+  /// Fetches the list of members and updates state.
+  void _fetchBookedOrderList() async {
+    var responseJson = await NetworkUtils.fetch(_accessToken, _client, _uid, _expiry, '/api/v1/booked_orders');
+    Iterable newBookedOrderRaw = responseJson;
+    List<BookedOrder> newBookedOrder = newBookedOrderRaw.map((orderData) => BookedOrder.fromJson(orderData)).toList();
+    setState(() {
+      bookedOrders = newBookedOrder;
+      displayedBookedOrders = bookedOrders;
+    });
+    print(bookedOrders);
   }
 
   /// Check out a item to the name entered.
   void _addToCart() async {
     var body = {
-      'member_id': member.id,
+      'so_number': this._selectedLocation,
       'item_id': item.id,
       'quantity': int.parse(nameController.text),
     };
@@ -133,13 +157,15 @@ class _DetailPageState extends State<DetailPage> {
 		} else if(responseJson['errors'] != null) {
       print(responseJson['errors']);
 		} else {
+      Map<String, dynamic> newOrderRaw = responseJson;
+      Order newOrder = Order.fromJson(newOrderRaw);
       Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (BuildContext context) {
-          return OrderDetailPage(memberId);
-        }
-      )
-    );
+        MaterialPageRoute(
+          builder: (BuildContext context) {
+            return OrderDetailPage(newOrder.memberId.toString());
+          }
+        )
+      );
     }
   }
 
@@ -182,17 +208,31 @@ class _DetailPageState extends State<DetailPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
-                          BodySection(
-                              'Category', item.category ?? 'N/A'),
+                          BodySection('Item Code', item.itemCode ?? 'N/A'),
+                          BodySection('Lot Number', item.category ?? 'N/A'),
                           BodySection('Description', item.description),
-                          BodySection('Available Copies',
-                              '${item.remainingQuantity} / ${item.quantity}'),
+                          BodySection('Total Quantities', '${item.remainingQuantity} / ${item.quantity}'),
                           Column(
                             children: <Widget>[
                               TextField(
                                 decoration:
                                     InputDecoration(hintText: 'Enter Required Quantity'),
                                 controller: nameController,
+                              ),
+                              DropdownButton(
+                                hint: Text('Please choose a location'), // Not necessary for Option 1
+                                value: _selectedLocation,
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    _selectedLocation = newValue;
+                                  });
+                                },
+                                items: displayedBookedOrders.map((bo) {
+                                  return DropdownMenuItem(
+                                    child: new Text(bo.soNumber),
+                                    value: bo.soNumber,
+                                  );
+                                }).toList(),
                               ),
                               new Padding(
                                 padding: const EdgeInsets.only(top: 16.0),

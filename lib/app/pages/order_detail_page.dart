@@ -16,6 +16,7 @@ class OrderDetailPage extends StatefulWidget {
 }
 
 class _OrderDetailPageState extends State<OrderDetailPage> {
+  GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   /// The full member data.
   Member member;
   /// Flag indicating whether the name field is nonempty.
@@ -30,6 +31,34 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     _fetchAuthDetails();
   }
 
+  Future<void> _neverSatisfied(String message) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Validation Result'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(message),
+                // Text('You\’re like me. I’m never satisfied.'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
   _getMember() async {
     var responseJson = await NetworkUtils.fetch(_accessToken, _client, _uid, _expiry, '/api/v1/members/' + widget.memberId);
     Map<String, dynamic> newMemberRaw = responseJson;
@@ -37,6 +66,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     setState(() {
       member = newMember;
     });
+  }
+  
+  _validateOrder() async {
+    var responseJson = await NetworkUtils.fetch(_accessToken, _client, _uid, _expiry, '/api/v1/members/' + widget.memberId + '/validate');
+    print(responseJson);
+    _neverSatisfied(responseJson['message']);
   }
 
 
@@ -122,8 +157,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     ),
                     new RaisedButton(
                       onPressed: () {
-                        Route route = MaterialPageRoute(builder: (context) => ScanPage(member.id.toString()));
-                        Navigator.push(context, route);
+                        _validateOrder();
                       },
                       child: Row(
                         children: <Widget>[

@@ -19,6 +19,7 @@ class _ScanPageState extends State<ScanPage> {
   bool getItemDetail = false;
   String memberId;
   Uint8List bytes = Uint8List(200);
+  final TextEditingController itemController = TextEditingController();
 
   @override
   initState() {
@@ -54,6 +55,13 @@ class _ScanPageState extends State<ScanPage> {
 							// 		color: Colors.grey.shade700
 							// 	)
               // ),
+              TextField(
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Enter Item Code',
+                ),
+                controller: itemController
+              ),
               
               RaisedButton(onPressed: _scan, child: Text("Scan")),
               RaisedButton(onPressed: (barcode != '' && !getItemDetail ? _fetchScannedItem : null), child: Text("Get Item detail")),
@@ -68,7 +76,10 @@ class _ScanPageState extends State<ScanPage> {
 
   Future _scan() async {
     String barcode = await scanner.scan();
-    setState(() => this.barcode = barcode);
+    setState(() {
+      this.barcode = barcode;
+      this.itemController.text = barcode.split('|')[0];
+    });
 
   }
 
@@ -82,7 +93,8 @@ class _ScanPageState extends State<ScanPage> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (BuildContext context) {
-          return DetailPage(barcode, memberId);
+          var text = itemController.text;
+          return DetailPage(text, memberId);
         }
       )
     );

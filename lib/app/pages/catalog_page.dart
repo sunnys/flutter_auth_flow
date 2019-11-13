@@ -121,7 +121,13 @@ class _CatalogListState extends State<CatalogList> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               subtitle: Text(
-                                  displayedMembers[index].orders.join(' | ')),
+                                displayedMembers[index].orders.join(' | ')
+                              ),
+                              // subtitle: displayedMembers[index].orders.map((bo) {
+                              //   return Text(
+                              //     displayedMembers[index].orders.join(' | ')
+                              //   );
+                              // }).toList(),
                               onTap: () {
                                 Navigator.of(context).push(MaterialPageRoute(
                                     builder: (BuildContext context) {
