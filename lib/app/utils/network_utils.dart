@@ -7,7 +7,8 @@ import 'auth_utils.dart';
 class NetworkUtils {
 	static final String host = developmentHost;
 	static final String productionHost = '';
-	static final String developmentHost = 'http://192.168.43.141:3000';
+	// static final String developmentHost = 'http://192.168.43.141:3000';
+	static final String developmentHost = 'http://cybit-qr-backend.herokuapp.com';
 
 	static dynamic authenticateUser(String email, String password) async {
 		var uri = host + AuthUtils.endPoint;
